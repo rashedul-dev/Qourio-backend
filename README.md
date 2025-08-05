@@ -31,7 +31,7 @@ A role-based backend API system for managing parcel deliveries between senders a
 ## 🚀 Getting Started
 
 ```bash
-git clone https://github.com/your-username/parcel-delivery-system.git
+git clone https://github.com/rashedul-dev/Qourio-backend
 cd parcel-delivery-system
 npm install
 npm run dev
