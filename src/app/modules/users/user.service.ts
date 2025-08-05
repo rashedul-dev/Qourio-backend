@@ -36,11 +36,7 @@ const createUser = async (payload: Partial<IUser>) => {
   return result;
 };
 
-const updateUser = async (
-  userId: string,
-  payload: Partial<IUser>,
-  decodedToken: JwtPayload
-) => {
+const updateUser = async (userId: string, payload: Partial<IUser>, decodedToken: JwtPayload) => {
   const isBasicUser = [Role.SENDER, Role.RECEIVER].includes(decodedToken.role);
 
   if (isBasicUser && userId !== decodedToken.userId) {
@@ -74,8 +70,19 @@ const updateUser = async (
   return updatedUser;
 };
 
+const getAllUsers = async () => {
+  const users = await User.find({});
+  const totalUsers = await User.countDocuments();
 
+  return {
+    data: users,
+    meta: {
+      total: totalUsers,
+    },
+  };
+};
 export const UserServices = {
   createUser,
   updateUser,
+  getAllUsers,
 };

@@ -9,6 +9,7 @@ import { UserControllers } from "./user.controller";
 const router = Router();
 
 router.post("/register", validateRequest(createUserBaseZodSchema), UserControllers.createUser);
+router.get("/all-users", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), UserControllers.getAllUsers);
 router.patch(
   "/:id",
   checkAuth(...Object.values(Role)),
