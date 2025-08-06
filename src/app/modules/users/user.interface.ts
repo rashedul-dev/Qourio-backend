@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { ILocation } from "../parcels/parcel.interface";
 
 export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
@@ -26,10 +27,10 @@ export interface IUser {
   password?: string;
   phone?: string;
   picture?: string;
-  role: Role;
+  role: Role ;
   isVerified?: boolean;
   isActive?: IsActive;
   isDeleted?: boolean;
-  defaultAddress?: string;
+  defaultAddress?: ILocation;
   auths: IAuthProvider[];
 }

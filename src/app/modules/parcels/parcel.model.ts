@@ -11,7 +11,7 @@ import {
 } from "./parcel.interface"; // Assuming your interfaces/enums are here
 
 // Sub-schema for Location (used inside Recipient and addresses)
-const locationSchema = new Schema<ILocation>({
+const locationSchema: object = new Schema<ILocation>({
   street: { type: String, required: true },
   city: { type: String, required: true },
   state: { type: String },
@@ -24,34 +24,41 @@ const recipientSchema = new Schema<IRecipient>({
   name: { type: String, required: true },
   email: { type: String }, // optional
   userId: { type: Types.ObjectId, ref: "receiver" }, // optional receiver ref
-  phone: { type: String, required: true },
+  phone: { type: String, required: true, index: true },
   address: { type: locationSchema, required: true },
 });
 
 // Sub-schema for Status Log
-const statusLogSchema = new Schema<IStatusLog>({
-  status: {
-    type: String,
-    enum: Object.values(ParcelStatus),
-    required: true,
+const statusLogSchema = new Schema<IStatusLog>(
+  {
+    status: {
+      type: String,
+      enum: Object.values(ParcelStatus),
+      required: true,
+    },
+    // location: { type: String },
+    location: locationSchema,
+    note: { type: String, max: 500 },
+    updatedBy: { type: Types.ObjectId, ref: "User" },
+    updatedAt: { type: Date, default: Date.now },
   },
-  timestamp: { type: Date, default: Date.now },
-  location: { type: String },
-  note: { type: String },
-  updatedBy: { type: Types.ObjectId, ref: "User" },
-  updatedAt: { type: Date, default: Date.now },
-});
+  {
+    _id: false,
+    timestamps: true,
+    versionKey: false,
+  }
+);
 
 // Main Parcel Schema
-const parcelSchema = new Schema<IParcel>(
+export const parcelSchema = new Schema<IParcel>(
   {
-    trackingId: { type: String, required: true, unique: true },
-    type: { type: String, enum: Object.values(ParcelType) },
-    shippingType: { type: String, enum: Object.values(ShippingType) },
-    weight: { type: Number },
-    weightUnit: { type: String, enum: Object.values(WeightUnit) },
-    fee: { type: Number },
-    couponCode: { type: String, default: null },
+    trackingId: { type: String, required: true, unique: true, index: true },
+    type: { type: String, enum: Object.values(ParcelType), default: ParcelType.PACKAGE },
+    shippingType: { type: String, enum: Object.values(ShippingType), default: ShippingType.STANDARD },
+    weight: { type: Number, min: 0.1, max: 10 },
+    weightUnit: { type: String, enum: Object.values(WeightUnit), default: WeightUnit.KILOGRAM },
+    fee: { type: Number, min: 70, default: 120, required: true },
+    couponCode: { type: String, max: 10, default: null },
     estimatedDelivery: { type: Date, default: null },
     currentStatus: {
       type: String,
@@ -60,23 +67,29 @@ const parcelSchema = new Schema<IParcel>(
       default: ParcelStatus.REQUESTED,
     },
     statusBeforeHold: { type: String, enum: Object.values(ParcelStatus) },
-    currentLocation: { type: String, default: null },
+    currentLocation: { type: locationSchema, default: null },
     isPaid: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
-    notes: { type: String },
+    notes: { type: String, max: 200 },
 
     sender: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    recipient: {
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    recipient: { type: recipientSchema, required: true },
+    // recipient: recipientSchema,
+    pickupAddress: locationSchema,
+    deliveryAddress: locationSchema,
+    // pickupAddress: { type: String },
+    // deliveryAddress: { type: String },
 
-    pickupAddress: { type: locationSchema },
-    deliveryAddress: { type: locationSchema },
-
-    deliveryMan: [{ type: Types.ObjectId, ref: "User" }],
+    deliveryMan: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
 
     deliveryFee: { type: Number },
     statusLog: { type: [statusLogSchema], default: [] },
@@ -88,26 +101,10 @@ const parcelSchema = new Schema<IParcel>(
     updatedAt: { type: Date, default: Date.now },
   },
   {
-    timestamps: true, // auto-manage createdAt and updatedAt
+    timestamps: true,
+    versionKey: false,
   }
 );
 
-//  Pre-save hooks or methods here to generate a unique tracking number
-parcelSchema.pre("save", async function (next) {
-  if (this.isNew) {
-    const date = new Date();
-
-    const year = date.getFullYear();
-
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-
-    const day = date.getDate().toString().padStart(2, "0");
-
-    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    this.trackingId = `TRK-${year}${month}${day}-${randomPart}`;
-  }
-  next();
-});
 
 export const ParcelModel = mongoose.model<IParcel>("Parcel", parcelSchema);
