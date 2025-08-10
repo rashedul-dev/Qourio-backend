@@ -273,6 +273,9 @@ const getParcelWithTrackingHistory = async (parcelId: string, userId: string) =>
   return populatedParcel;
 };
 
+//** --------------------- RECEIVER SERVICES -----------------------*/
+
+
 export const parcelServices = {
   createParcel,
   cancelParcel,
