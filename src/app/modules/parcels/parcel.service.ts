@@ -299,6 +299,41 @@ const getSenderParcels = async (senderId: string, query: Record<string, string>)
 };
 
 //** --------------------- RECEIVER SERVICES -----------------------*/
+const getIncomingParcels = async (receiverId: string, query: Record<string, string>) => {
+  const parcelQuery = new QueryBuilder(
+    Parcel.find({
+      receiver: receiverId,
+      currentStatus: {
+        $nin: [
+          ParcelStatus.DELIVERED,
+          ParcelStatus.FLAGGED,
+          ParcelStatus.RETURNED,
+          ParcelStatus.BLOCKED,
+          ParcelStatus.CANCELLED,
+        ],
+      },
+    })
+      .select(
+        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
+      )
+      .populate("sender", "name email phone -_id")
+      .populate("receiver", "name email phone _id"),
+    query
+  )
+    .search(["trackingId", "deliveryAddress", "pickupAddress"])
+    .filter()
+    .sort()
+    .pagination()
+    .fields();
+
+  const parcels = await parcelQuery.modelQuery;
+  const meta = await parcelQuery.getMeta();
+
+  return {
+    data: parcels,
+    meta,
+  };
+};
 
 export const parcelServices = {
   createParcel,
@@ -306,4 +341,5 @@ export const parcelServices = {
   deleteParcel,
   getParcelWithTrackingHistory,
   getSenderParcels,
+  getIncomingParcels,
 };

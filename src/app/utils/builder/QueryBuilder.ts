@@ -74,6 +74,8 @@ export class QueryBuilder<T> {
 
     const totalPage = Math.ceil(totalParcel / limit);
 
-    return { page, limit, totalPage, total: totalParcel };
+    return { page, limit, totalPage, 
+        total: totalParcel 
+    };
   }
 }

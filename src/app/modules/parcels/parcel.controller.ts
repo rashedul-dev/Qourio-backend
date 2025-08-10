@@ -73,10 +73,29 @@ const getSenderParcels = catchAsync(async (req: Request, res: Response, next: Ne
     meta: result.meta,
   });
 });
+
+//** --------------------- RECEIVER CONTROLLERS -----------------------*/
+
+const getIncomingParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const receiverId = req.user?.userId;
+  const query = req.query;
+
+  const result = await parcelServices.getIncomingParcels(String(receiverId), query as Record<string, string>);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Incoming parcels retrieved successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 export const parcelControllers = {
   createParcel,
   cancelParcel,
   deleteParcel,
   getParcelWithHistory,
   getSenderParcels,
+  getIncomingParcels,
 };
