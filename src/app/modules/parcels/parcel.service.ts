@@ -1,9 +1,10 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 import {
   ICreateParcel,
   ILocation,
   IParcel,
   IRecipient,
+  IStatusLog,
   ParcelStatus,
   ParcelType,
   ShippingType,
@@ -11,7 +12,7 @@ import {
 import AppError from "../../errorHelpers/AppError";
 import httpStatus from "http-status-codes";
 import { User } from "../users/user.model";
-import { ParcelModel } from "./parcel.model";
+import { Parcel } from "./parcel.model";
 import { IsActive, Role } from "../users/user.interface";
 import { generateTrackingId } from "../../utils/generatetrackingId";
 
@@ -139,7 +140,7 @@ const createParcel = async (payload: ICreateParcel, senderId: string) => {
   const parcelType = rest.type || ParcelType.PACKAGE;
   const shippingType = rest.shippingType || ShippingType.STANDARD;
 
-  const parcel = await ParcelModel.create({
+  const parcel = await Parcel.create({
     trackingId,
     type: parcelType,
     shippingType,
@@ -163,7 +164,7 @@ const createParcel = async (payload: ICreateParcel, senderId: string) => {
   });
 
   // Fetch the created parcel with excluded fields for privacy
-  const cleanParcel = await ParcelModel.findById(parcel._id)
+  const cleanParcel = await Parcel.findById(parcel._id)
     .select("-recipient -statusLog._id -deliveryPersonnel -isBlocked")
     .populate("sender", "name email phone _id")
     .populate("recipient", "name email phone -_id")
@@ -172,6 +173,109 @@ const createParcel = async (payload: ICreateParcel, senderId: string) => {
   return cleanParcel;
 };
 
+const addStatusLog = (
+  parcel: Document<unknown, object, IParcel> & IParcel,
+  status: ParcelStatus,
+  updatedBy: Types.ObjectId,
+  location?: ILocation,
+  note?: string
+) => {
+  const statusLogEntry = {
+    status,
+    ...(location && { location }),
+    note: note || "updated by System",
+    updatedBy: updatedBy,
+  };
+
+  if (!parcel.statusLog) {
+    parcel.statusLog = [];
+  }
+  parcel.statusLog.push(statusLogEntry as IStatusLog);
+};
+const cancelParcel = async (senderId: string, id: string, note?: string) => {
+  const parcel = await Parcel.findById(id);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel Not Found");
+  }
+
+  // if (parcel.sender.toString() !== senderId) {
+  //   throw new AppError(httpStatus.FORBIDDEN, "You are not authorized to cancel this parcel");
+  // }
+
+  if (parcel.currentStatus === ParcelStatus.CANCELLED) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel is already cancelled");
+  }
+  if (
+    parcel.currentStatus === ParcelStatus.DELIVERED ||
+    parcel.currentStatus === ParcelStatus.DISPATCHED ||
+    parcel.currentStatus === ParcelStatus.IN_TRANSIT
+  ) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel cannot be cancelled at this stage");
+  }
+  if (parcel.currentStatus === ParcelStatus.BLOCKED || parcel.currentStatus === ParcelStatus.FLAGGED) {
+    throw new AppError(httpStatus.FORBIDDEN, "Cannot cancel blocked or flagged parcel");
+  }
+
+  parcel.currentStatus = ParcelStatus.CANCELLED;
+  parcel.estimatedDelivery = null;
+  parcel.deliveredAt = null;
+  parcel.cancelledAt = new Date();
+
+  addStatusLog(parcel, ParcelStatus.CANCELLED, new Types.ObjectId(senderId), parcel?.pickupAddress as ILocation, note);
+
+  await parcel.save();
+
+  const cleanParcel = await Parcel.findById(parcel._id)
+    .select("-receiver -statusLog._id -deliveryPersonnel -isBlocked")
+    .populate("sender", "name email phone _id")
+    .populate("recipient", "name email phone -_id")
+    .populate("statusLog.updatedBy", "name role -_id");
+
+  return cleanParcel;
+};
+
+const deleteParcel = async (senderId: string, parcelId: string) => {
+  const parcel = await Parcel.findById(parcelId);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel Not Found");
+  }
+  if (parcel.sender.toString() !== senderId) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized to delete this Parcel");
+  }
+  if (parcel.currentStatus !== ParcelStatus.CANCELLED) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel Must be Cancelled before deletion");
+  }
+  await Parcel.findByIdAndDelete(parcelId);
+};
+
+const getParcelWithTrackingHistory = async (parcelId: string, userId: string) => {
+  const parcel = await Parcel.findById(parcelId);
+
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel Not Found");
+  }
+  if (!parcel.sender || !parcel.recipient) {
+    throw new Error("Parcel is missing sender or recipient");
+  }
+  const isOwner = parcel.sender?._id?.toString() === userId || parcel.recipient?._id?.toString() === userId;
+
+  if (!isOwner) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized to view this parcel");
+  }
+  const populatedParcel = await Parcel.findById(parcel._id)
+    .select("-type -weight -weightUnit -shippingType -fee -isPaid -isBlocked -couponCode -receiver -statusLog._id")
+    .populate("sender", "name email phone -_id")
+    .populate("recipient", "name email phone -_id")
+    .populate("statusLog.updatedBy", "name role -_id");
+
+  return populatedParcel;
+};
+
 export const parcelServices = {
   createParcel,
+  cancelParcel,
+  deleteParcel,
+  getParcelWithTrackingHistory,
 };

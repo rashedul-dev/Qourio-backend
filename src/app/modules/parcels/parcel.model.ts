@@ -107,4 +107,4 @@ export const parcelSchema = new Schema<IParcel>(
 );
 
 
-export const ParcelModel = mongoose.model<IParcel>("Parcel", parcelSchema);
+export const Parcel = mongoose.model<IParcel>("Parcel", parcelSchema);
