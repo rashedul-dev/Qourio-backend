@@ -21,6 +21,17 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  //Normal case : Not nested plain string
+  //     search(searchableField: string[]): this {
+  //     const search = this.query.search || "";
+  //     const searchQuery = {
+  //       $or: searchableField.map((field) => ({ [field]: { $regex: search, $options: "i" } })),
+  //     };
+  //     this.modelQuery = this.modelQuery.find(searchQuery);
+  //     return this;
+  //   }
+
+  //Only if your searching feild is nested as an object
   search(fields: string[]) {
     const searchTerm = this.query.search;
     if (searchTerm) {
