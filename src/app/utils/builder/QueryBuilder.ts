@@ -21,15 +21,17 @@ export class QueryBuilder<T> {
     return this;
   }
 
-  search(searchableField: string[]): this {
-    const search = this.query.search || "";
-    const searchQuery = {
-      $or: searchableField.map((field) => ({ [field]: { $regex: search, $options: "i" } })),
-    };
-    this.modelQuery = this.modelQuery.find(searchQuery);
+  search(fields: string[]) {
+    const searchTerm = this.query.search;
+    if (searchTerm) {
+      const regex = { $regex: searchTerm, $options: "i" };
+
+      this.modelQuery = this.modelQuery.find({
+        $or: fields.map((field) => ({ [field]: regex })),
+      });
+    }
     return this;
   }
-
   sort(): this {
     const sort = this.query.sort || "-createdAt";
     this.modelQuery = this.modelQuery.sort(sort);
@@ -54,13 +56,13 @@ export class QueryBuilder<T> {
   }
 
   async getMeta() {
-    const totalTours = await this.modelQuery.model.countDocuments();
+    const totalParcel = await this.modelQuery.model.countDocuments();
 
     const page = Number(this.query.page) || 1;
     const limit = Number(this.query.limit) || 10;
 
-    const totalPage = Math.ceil(totalTours / limit);
+    const totalPage = Math.ceil(totalParcel / limit);
 
-    return { page, limit, totalPage, total: totalTours };
+    return { page, limit, totalPage, total: totalParcel };
   }
 }

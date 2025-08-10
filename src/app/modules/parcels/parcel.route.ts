@@ -8,8 +8,8 @@ import { parcelControllers } from "./parcel.controller";
 const router = Router();
 
 router.post("/", checkAuth(Role.SENDER), validateRequest(createParcelZodSchema), parcelControllers.createParcel);
+router.get("/me", checkAuth(Role.SENDER), parcelControllers.getSenderParcels);
 router.post("/cancel/:id", checkAuth(Role.SENDER), parcelControllers.cancelParcel);
 router.post("/delete/:id", checkAuth(Role.SENDER), parcelControllers.deleteParcel);
 router.get("/:id/status-log", checkAuth(Role.SENDER), parcelControllers.getParcelWithHistory);
-
 export const ParcelRoutes = router;

@@ -15,6 +15,8 @@ import { User } from "../users/user.model";
 import { Parcel } from "./parcel.model";
 import { IsActive, Role } from "../users/user.interface";
 import { generateTrackingId } from "../../utils/generatetrackingId";
+import { QueryBuilder } from "../../utils/builder/QueryBuilder";
+import { date } from "zod";
 
 // const createParcel = async (senderId: Types.ObjectId, payload: Partial<IParcel>) => {
 //   // : Promise<IParcel>
@@ -272,13 +274,36 @@ const getParcelWithTrackingHistory = async (parcelId: string, userId: string) =>
 
   return populatedParcel;
 };
+const getSenderParcels = async (senderId: string, query: Record<string, string>) => {
+  const parcelQuery = new QueryBuilder(
+    Parcel.find({ sender: senderId })
+      .select("-recipient -statusLog._id -deliveryMan -isBlocked")
+      .populate("sender", "name email phone _id")
+      .populate("recipient", "name email phone -_id")
+      .populate("statusLog.updatedBy", "name role -_id"),
+    query
+  )
+    .search(["trackingId", "deliveryAddress", "pickupAddress"])
+    .filter()
+    .sort()
+    .pagination()
+    .fields();
+
+  const parcels = await parcelQuery.modelQuery;
+  const meta = await parcelQuery.getMeta();
+
+  return {
+    data: parcels,
+    meta: meta,
+  };
+};
 
 //** --------------------- RECEIVER SERVICES -----------------------*/
-
 
 export const parcelServices = {
   createParcel,
   cancelParcel,
   deleteParcel,
   getParcelWithTrackingHistory,
+  getSenderParcels,
 };
