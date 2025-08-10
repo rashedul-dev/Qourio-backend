@@ -16,4 +16,5 @@ router.get("/:id/status-log", checkAuth(Role.SENDER), parcelControllers.getParce
 //** --------------------- RECEIVER ROUTES -----------------------*/
 router.get("/me/incoming", checkAuth(Role.RECEIVER), parcelControllers.getIncomingParcels);
 router.patch("/confirm/:id", checkAuth(Role.RECEIVER), parcelControllers.confirmDelivery);
+router.get("/me/history", checkAuth(Role.RECEIVER), parcelControllers.getDeliveryHistory);
 export const ParcelRoutes = router;

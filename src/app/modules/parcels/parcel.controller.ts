@@ -77,10 +77,10 @@ const getSenderParcels = catchAsync(async (req: Request, res: Response, next: Ne
 //** --------------------- RECEIVER CONTROLLERS -----------------------*/
 
 const getIncomingParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const receiverId = req.user?.userId;
+  const recipientId = req.user?.userId;
   const query = req.query;
 
-  const result = await parcelServices.getIncomingParcels(String(receiverId), query as Record<string, string>);
+  const result = await parcelServices.getIncomingParcels(String(recipientId), query as Record<string, string>);
 
   sendResponse(res, {
     success: true,
@@ -104,6 +104,21 @@ const confirmDelivery = catchAsync(async (req: Request, res: Response, next: Nex
   });
 });
 
+const getDeliveryHistory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const recipientId = req.user?.userId;
+  const query = req.query;
+
+  const result = await parcelServices.getDeliveryHistory(String(recipientId), query as Record<string, string>);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Parcels Delivery History retrieved successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 export const parcelControllers = {
   createParcel,
   cancelParcel,
@@ -112,4 +127,5 @@ export const parcelControllers = {
   getSenderParcels,
   getIncomingParcels,
   confirmDelivery,
+  getDeliveryHistory,
 };
