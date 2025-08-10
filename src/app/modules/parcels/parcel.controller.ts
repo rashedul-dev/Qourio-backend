@@ -90,6 +90,19 @@ const getIncomingParcels = catchAsync(async (req: Request, res: Response, next: 
     meta: result.meta,
   });
 });
+const confirmDelivery = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const parcelId = req.params?.id;
+  const recipientId = req.user?.userId;
+
+  const result = await parcelServices.confirmDelivery(parcelId, recipientId as string);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Parcel Delivery Confirmed Successfully",
+    data: result,
+  });
+});
 
 export const parcelControllers = {
   createParcel,
@@ -98,4 +111,5 @@ export const parcelControllers = {
   getParcelWithHistory,
   getSenderParcels,
   getIncomingParcels,
+  confirmDelivery,
 };

@@ -3,7 +3,6 @@ import {
   ICreateParcel,
   ILocation,
   IParcel,
-  IRecipient,
   IStatusLog,
   ParcelStatus,
   ParcelType,
@@ -16,7 +15,8 @@ import { Parcel } from "./parcel.model";
 import { IsActive, Role } from "../users/user.interface";
 import { generateTrackingId } from "../../utils/generatetrackingId";
 import { QueryBuilder } from "../../utils/builder/QueryBuilder";
-import { date } from "zod";
+import { date, string } from "zod";
+import { populate } from "dotenv";
 
 // const createParcel = async (senderId: Types.ObjectId, payload: Partial<IParcel>) => {
 //   // : Promise<IParcel>
@@ -299,10 +299,10 @@ const getSenderParcels = async (senderId: string, query: Record<string, string>)
 };
 
 //** --------------------- RECEIVER SERVICES -----------------------*/
-const getIncomingParcels = async (receiverId: string, query: Record<string, string>) => {
+const getIncomingParcels = async (recipientId: string, query: Record<string, string>) => {
   const parcelQuery = new QueryBuilder(
     Parcel.find({
-      receiver: receiverId,
+      receiver: recipientId,
       currentStatus: {
         $nin: [
           ParcelStatus.DELIVERED,
@@ -317,7 +317,7 @@ const getIncomingParcels = async (receiverId: string, query: Record<string, stri
         "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
       )
       .populate("sender", "name email phone -_id")
-      .populate("receiver", "name email phone _id"),
+      .populate("recipient", "name email phone _id"),
     query
   )
     .search(["trackingId", "deliveryAddress", "pickupAddress"])
@@ -335,6 +335,49 @@ const getIncomingParcels = async (receiverId: string, query: Record<string, stri
   };
 };
 
+const confirmDelivery = async (parcelId: string, recipientId: string) => {
+  const parcel = await Parcel.findOne({ _id: parcelId });
+
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
+  }
+
+  if (parcel.recipient.toString() !== recipientId) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized to confirm this parcel");
+  }
+  if (parcel.currentStatus === ParcelStatus.DELIVERED) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel already Delivered");
+  }
+
+  if (parcel.currentStatus !== ParcelStatus.IN_TRANSIT) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel must be In-Transit to confirm delivery");
+  }
+
+  parcel.currentStatus = ParcelStatus.DELIVERED;
+  parcel.deliveredAt = new Date();
+  parcel.cancelledAt = null;
+
+  addStatusLog(
+    parcel,
+    ParcelStatus.DELIVERED,
+    new Types.ObjectId(recipientId),
+    parcel?.deliveryAddress as ILocation,
+    "Parcel status Updated and Delivered - by receiver"
+  );
+
+  await parcel.save();
+
+  const populatedParcel = await Parcel.findById(parcel._id)
+    .select(
+      "-_id -weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -receiver -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
+    )
+    .populate("sender", "name email phone -_id");
+
+  return populatedParcel;
+};
+
+
+
 export const parcelServices = {
   createParcel,
   cancelParcel,
@@ -342,4 +385,5 @@ export const parcelServices = {
   getParcelWithTrackingHistory,
   getSenderParcels,
   getIncomingParcels,
+  confirmDelivery,
 };
