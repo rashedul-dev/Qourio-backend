@@ -13,7 +13,7 @@ router.post("/", checkAuth(Role.SENDER), validateRequest(createParcelZodSchema),
 router.get("/me", checkAuth(Role.SENDER), parcelControllers.getSenderParcels);
 router.post("/cancel/:id", checkAuth(Role.SENDER), parcelControllers.cancelParcel);
 router.post("/delete/:id", checkAuth(Role.SENDER), parcelControllers.deleteParcel);
-router.get("/:id/status-log", checkAuth(Role.SENDER), parcelControllers.getParcelWithHistory);
+router.get("/:id/status-log", checkAuth(Role.SENDER), parcelControllers.getParcelWithTrackingHistory);
 
 //** --------------------- RECEIVER ROUTES -----------------------*/
 
@@ -22,6 +22,7 @@ router.patch("/confirm/:id", checkAuth(Role.RECEIVER), parcelControllers.confirm
 router.get("/me/history", checkAuth(Role.RECEIVER), parcelControllers.getDeliveryHistory);
 
 //** --------------------- ADMIN ROUTES -----------------------*/
+
 router.get("/", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), parcelControllers.getAllParcels);
 
 router.patch(
@@ -34,8 +35,11 @@ router.patch(
   "/:id/block-status",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   validateRequest(updateBlockedStatusSchema),
-  parcelControllers.blockStatusParcel
+  parcelControllers.parcelStatusBlock
 );
+router.get("/:id/details", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), parcelControllers.getParcelDetailsById);
+
+//** --------------------- PUBLIC ROUTES -----------------------*/
 
 router.get("/tracking/:id", parcelControllers.getParcelByTrackingId);
 

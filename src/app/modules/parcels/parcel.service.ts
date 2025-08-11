@@ -594,7 +594,15 @@ const parcelStatusBlock = async (
 
   return parcel;
 };
+const getParcelDetailsById = async (parcelId: string) => {
+  const parcel = await Parcel.findById(parcelId);
 
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
+  }
+
+  return parcel;
+};
 
 //** --------------------- PUBLIC SERVICES -----------------------*/
 
@@ -632,8 +640,9 @@ export const parcelServices = {
   getAllParcels,
   updateParcelStatus,
   parcelStatusBlock,
-  getParcelByTrackingId,
+  getParcelDetailsById,
+  getParcelWithTrackingHistory,
 
   // PUBLIC
-  getParcelWithTrackingHistory,
+  getParcelByTrackingId,
 };

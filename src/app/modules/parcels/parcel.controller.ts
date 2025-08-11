@@ -46,7 +46,7 @@ const deleteParcel = catchAsync(async (req: Request, res: Response, next: NextFu
     data: result,
   });
 });
-const getParcelWithHistory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const getParcelWithTrackingHistory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const parcelId = req.params.id;
   const userId = req.user?.userId;
 
@@ -148,7 +148,7 @@ const updatedParcelStatus = async (req: Request, res: Response, next: NextFuncti
     data: result,
   });
 };
-const blockStatusParcel = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const parcelStatusBlock = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const parcelId = req.params?.id;
   const adminId = req?.user?.userId;
   const { reason, isBlocked } = req.body;
@@ -165,7 +165,18 @@ const blockStatusParcel = catchAsync(async (req: Request, res: Response, next: N
     data: result,
   });
 });
+const getParcelDetailsById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const parcelId = req.params?.id;
 
+  const result = await parcelServices.getParcelDetailsById(parcelId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Parcel details retrieved successfully",
+    data: result,
+  });
+});
 //** --------------------- PUBLIC CONTROLLERS -----------------------*/
 
 const getParcelByTrackingId = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -181,16 +192,24 @@ const getParcelByTrackingId = catchAsync(async (req: Request, res: Response, nex
   });
 });
 export const parcelControllers = {
+  //  SENDER
   createParcel,
   cancelParcel,
   deleteParcel,
-  getParcelWithHistory,
   getSenderParcels,
+
+  //  RECEIVER
   getIncomingParcels,
   confirmDelivery,
   getDeliveryHistory,
+
+  //  ADMIN
   getAllParcels,
   updatedParcelStatus,
-  blockStatusParcel,
+  parcelStatusBlock,
+  getParcelDetailsById,
+  getParcelWithTrackingHistory,
+  
+  //  PUBLIC
   getParcelByTrackingId,
 };
