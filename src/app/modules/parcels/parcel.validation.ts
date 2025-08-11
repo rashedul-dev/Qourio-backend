@@ -101,9 +101,9 @@ export const updateParcelSchemaAdmin = z.object({
 export const updateStatusPersonnelSchema = z.object({
   currentStatus: z.enum(Object.values(ParcelStatus) as [string]).optional(),
   currentLocation: z.string().nullable().optional(),
-  deliveryPersonnelId: z
+  deliveryManId: z
     .string()
-    .refine((val) => Types.ObjectId.isValid(val), "Invalid personnel id")
+    .refine((val) => Types.ObjectId.isValid(val), "Invalid Delivery Man id")
     .optional(),
 });
 

@@ -9,14 +9,15 @@ import {
   IRecipient,
   IParcel,
 } from "./parcel.interface"; // Assuming your interfaces/enums are here
+import { string } from "zod";
 
 // Sub-schema for Location (used inside Recipient and addresses)
 const locationSchema: object = new Schema<ILocation>({
   street: { type: String, required: true },
-  city: { type: String, required: true },
+  city: { type: String },
   state: { type: String },
   postalCode: { type: String },
-  country: { type: String, required: true, default: "Bangladesh" },
+  country: { type: String, default: "Bangladesh" },
 });
 
 // Sub-schema for Recipient
@@ -67,7 +68,8 @@ export const parcelSchema = new Schema<IParcel>(
       default: ParcelStatus.REQUESTED,
     },
     statusBeforeHold: { type: String, enum: Object.values(ParcelStatus) },
-    currentLocation: { type: locationSchema, default: null },
+    // currentLocation: { type: locationSchema, default: null },
+    currentLocation: { type: String, default: null },
     isPaid: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     notes: { type: String, max: 200 },
@@ -105,6 +107,5 @@ export const parcelSchema = new Schema<IParcel>(
     versionKey: false,
   }
 );
-
 
 export const Parcel = mongoose.model<IParcel>("Parcel", parcelSchema);

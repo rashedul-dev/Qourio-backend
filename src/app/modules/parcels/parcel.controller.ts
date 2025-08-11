@@ -119,6 +119,36 @@ const getDeliveryHistory = catchAsync(async (req: Request, res: Response, next: 
   });
 });
 
+//** --------------------- ADMIN CONTROLLERS -----------------------*/
+
+const getAllParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const query = req.query;
+
+  const result = await parcelServices.getAllParcels(query as Record<string, string>);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All parcels retrieved successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
+const updatedParcelStatus = async (req: Request, res: Response, next: NextFunction) => {
+  const parcelId = req.params?.id;
+  const adminId = req.user?.userId;
+
+  const result = await parcelServices.updateParcelStatus(parcelId, adminId as string, req?.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Parcels status or Delivery Man Updated successfully",
+    data: result,
+ });
+};
+
 export const parcelControllers = {
   createParcel,
   cancelParcel,
@@ -128,4 +158,6 @@ export const parcelControllers = {
   getIncomingParcels,
   confirmDelivery,
   getDeliveryHistory,
+  getAllParcels,
+  updatedParcelStatus
 };

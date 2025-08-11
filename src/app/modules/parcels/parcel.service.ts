@@ -17,6 +17,7 @@ import { generateTrackingId } from "../../utils/generatetrackingId";
 import { QueryBuilder } from "../../utils/builder/QueryBuilder";
 import { date, string } from "zod";
 import { populate } from "dotenv";
+import { isValidStatusTransition, StatusTransitions } from "../../helpers/StatusTransition";
 
 // const createParcel = async (senderId: Types.ObjectId, payload: Partial<IParcel>) => {
 //   // : Promise<IParcel>
@@ -167,7 +168,7 @@ const createParcel = async (payload: ICreateParcel, senderId: string) => {
 
   // Fetch the created parcel with excluded fields for privacy
   const cleanParcel = await Parcel.findById(parcel._id)
-    .select("-recipient -statusLog._id -deliveryPersonnel -isBlocked")
+    .select("-recipient -statusLog._id -deliveryman -isBlocked")
     .populate("sender", "name email phone _id")
     .populate("recipient", "name email phone -_id")
     .populate("statusLog.updatedBy", "name role -_id");
@@ -229,7 +230,7 @@ const cancelParcel = async (senderId: string, id: string, note?: string) => {
   await parcel.save();
 
   const cleanParcel = await Parcel.findById(parcel._id)
-    .select("-receiver -statusLog._id -deliveryPersonnel -isBlocked")
+    .select("-receiver -statusLog._id -deliveryman -isBlocked")
     .populate("sender", "name email phone _id")
     .populate("recipient", "name email phone -_id")
     .populate("statusLog.updatedBy", "name role -_id");
@@ -299,6 +300,7 @@ const getSenderParcels = async (senderId: string, query: Record<string, string>)
 };
 
 //** --------------------- RECEIVER SERVICES -----------------------*/
+
 const getIncomingParcels = async (recipientId: string, query: Record<string, string>) => {
   const parcelQuery = new QueryBuilder(
     Parcel.find({
@@ -314,7 +316,7 @@ const getIncomingParcels = async (recipientId: string, query: Record<string, str
       },
     })
       .select(
-        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
+        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -statusLog._id -statusLog.updatedBy -deliveryman"
       )
       .populate("sender", "name email phone -_id")
       .populate("recipient", "name email phone _id"),
@@ -369,7 +371,7 @@ const confirmDelivery = async (parcelId: string, recipientId: string) => {
 
   const populatedParcel = await Parcel.findById(parcel._id)
     .select(
-      "-_id -weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -receiver -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
+      "-_id -weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -receiver -statusLog._id -statusLog.updatedBy -deliveryman"
     )
     .populate("sender", "name email phone -_id");
 
@@ -385,7 +387,7 @@ const getDeliveryHistory = async (recipientId: string, query: Record<string, str
       },
     })
       .select(
-        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -receiver -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
+        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -receiver -statusLog._id -statusLog.updatedBy -deliveryman"
       )
       .populate("sender", "name email phone -_id")
       .populate("recipient", "name email phone"),
@@ -406,6 +408,140 @@ const getDeliveryHistory = async (recipientId: string, query: Record<string, str
   };
 };
 
+//** --------------------- ADMIN SERVICES -----------------------*/
+
+const getAllParcels = async (query: Record<string, string>) => {
+  const parcelQuery = new QueryBuilder(Parcel.find(), query)
+    .search(["trackingId", "name", "deliveryAddress", "pickupAddress"])
+    .filter()
+    .sort()
+    .pagination()
+    .fields();
+
+  const parcels = await parcelQuery.modelQuery;
+  const meta = await parcelQuery.getMeta();
+
+  return {
+    data: parcels,
+    meta,
+  };
+};
+
+const updateParcelStatus = async (
+  parcelId: string,
+  adminId: string,
+  payload: {
+    currentStatus?: ParcelStatus;
+    currentLocation?: string;
+    deliveryManId?: string;
+  }
+) => {
+  const parcel = await Parcel.findById(parcelId);
+  if (!parcel) throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
+
+  const { currentStatus, currentLocation, deliveryManId } = payload;
+
+  if (!currentStatus && !currentLocation && !deliveryManId) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Please provide at least one of currentStatus, currentLocation or deliveryManId"
+    );
+  }
+
+  //  Status transition validation
+  if (currentStatus && !isValidStatusTransition(parcel.currentStatus, currentStatus)) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Cannot transition from ${parcel.currentStatus} to ${currentStatus}. 
+       Valid transitions: ${StatusTransitions[parcel.currentStatus].join(", ")}`
+    );
+  }
+
+  //  Handle status changes
+  if (currentStatus) {
+    const statusActions: Partial<Record<ParcelStatus, () => void>> = {
+      [ParcelStatus.CANCELLED]: () => {
+        parcel.cancelledAt = new Date();
+        parcel.deliveredAt = null;
+      },
+      [ParcelStatus.DELIVERED]: () => {
+        parcel.deliveredAt = new Date();
+        parcel.cancelledAt = null;
+      },
+      [ParcelStatus.BLOCKED]: () => {
+        parcel.isBlocked = true;
+        parcel.cancelledAt = null;
+      },
+      [ParcelStatus.APPROVED]: () => {
+        parcel.isBlocked = false;
+        parcel.cancelledAt = null;
+      },
+      [ParcelStatus.RETURNED]: () => {
+        parcel.cancelledAt = null;
+      },
+    };
+
+    statusActions[currentStatus]?.();
+    parcel.currentStatus = currentStatus;
+
+    const locationObj: ILocation = {
+      street: payload.currentLocation || parcel.currentLocation || "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
+    };
+
+    addStatusLog(
+      parcel,
+      (payload.currentStatus || parcel.currentStatus) as ParcelStatus,
+      new Types.ObjectId(adminId),
+      locationObj,
+      `Status updated by admin to ${parcel.currentStatus}`
+    );
+  }
+
+  //  Update location
+  if (currentLocation) parcel.currentLocation = currentLocation;
+  //  Assign delivery man
+  if (deliveryManId) {
+    const manId = new Types.ObjectId(deliveryManId);
+    const man = await User.findById(manId);
+
+    if (!man) throw new AppError(httpStatus.BAD_REQUEST, "Delivery man not found");
+    if (man.role !== Role.DELIVERY_MAN)
+      throw new AppError(httpStatus.BAD_REQUEST, "Provided ID is not a delivery man ID");
+    if (man.isActive !== IsActive.ACTIVE)
+      throw new AppError(httpStatus.BAD_REQUEST, `Delivery man is ${man.isActive} and cannot be assigned`);
+    if (!man.isVerified)
+      throw new AppError(httpStatus.BAD_REQUEST, "Delivery man is not verified and cannot be assigned");
+
+    const assignableStatuses = [
+      ParcelStatus.APPROVED,
+      ParcelStatus.PICKED,
+      ParcelStatus.DISPATCHED,
+      ParcelStatus.IN_TRANSIT,
+      ParcelStatus.RESCHEDULED,
+    ];
+
+    const finalStatus = currentStatus || parcel.currentStatus;
+    if (!assignableStatuses.includes(finalStatus)) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        `Cannot assign delivery man when parcel status is ${finalStatus}. 
+         Valid statuses: ${assignableStatuses.join(", ")}`
+      );
+    }
+
+    if (Array.isArray(parcel.deliveryMan) && !parcel.deliveryMan.includes(manId)) {
+      parcel.deliveryMan.push(manId);
+    }
+  }
+
+  await parcel.save();
+  return parcel;
+};
+
 export const parcelServices = {
   createParcel,
   cancelParcel,
@@ -414,5 +550,7 @@ export const parcelServices = {
   getSenderParcels,
   getIncomingParcels,
   confirmDelivery,
-  getDeliveryHistory
+  getDeliveryHistory,
+  getAllParcels,
+  updateParcelStatus,
 };
