@@ -229,13 +229,13 @@ const cancelParcel = async (senderId: string, id: string, note?: string) => {
 
   await parcel.save();
 
-  const cleanParcel = await Parcel.findById(parcel._id)
+  const PopulatedParcel = await Parcel.findById(parcel._id)
     .select("-receiver -statusLog._id -deliveryman -isBlocked")
     .populate("sender", "name email phone _id")
     .populate("recipient", "name email phone -_id")
     .populate("statusLog.updatedBy", "name role -_id");
 
-  return cleanParcel;
+  return PopulatedParcel;
 };
 
 const deleteParcel = async (senderId: string, parcelId: string) => {
@@ -594,16 +594,46 @@ const parcelStatusBlock = async (
 
   return parcel;
 };
+
+
+//** --------------------- PUBLIC SERVICES -----------------------*/
+
+const getParcelByTrackingId = async (trackingId: string) => {
+  const parcel = await Parcel.findOne({ trackingId }).select(
+    "currentStatus statusLog.status statusLog.location statusLog.updatedAt pickupAddress deliveryAddress deliveredAt"
+  );
+
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel Not Found");
+  }
+
+  return {
+    currentStatus: parcel.currentStatus,
+    createdAt: parcel.createdAt,
+    statusLog: parcel.statusLog,
+    pickupAddress: parcel.pickupAddress,
+    deliveryAddress: parcel.deliveryAddress,
+    deliveredAt: parcel.deliveredAt,
+  };
+};
 export const parcelServices = {
+  //  SENDER
   createParcel,
   cancelParcel,
   deleteParcel,
-  getParcelWithTrackingHistory,
   getSenderParcels,
+
+  //  RECEIVER
   getIncomingParcels,
   confirmDelivery,
   getDeliveryHistory,
+
+  //  ADMIN
   getAllParcels,
   updateParcelStatus,
   parcelStatusBlock,
+  getParcelByTrackingId,
+
+  // PUBLIC
+  getParcelWithTrackingHistory,
 };

@@ -166,6 +166,20 @@ const blockStatusParcel = catchAsync(async (req: Request, res: Response, next: N
   });
 });
 
+//** --------------------- PUBLIC CONTROLLERS -----------------------*/
+
+const getParcelByTrackingId = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const trackingId = req.params.id;
+
+  const result = await parcelServices.getParcelByTrackingId(trackingId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Parcel details retrieved successfully by Tracking ID",
+    data: result,
+  });
+});
 export const parcelControllers = {
   createParcel,
   cancelParcel,
@@ -177,5 +191,6 @@ export const parcelControllers = {
   getDeliveryHistory,
   getAllParcels,
   updatedParcelStatus,
-  blockStatusParcel
+  blockStatusParcel,
+  getParcelByTrackingId,
 };

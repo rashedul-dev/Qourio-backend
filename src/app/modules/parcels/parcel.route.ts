@@ -37,6 +37,8 @@ router.patch(
   parcelControllers.blockStatusParcel
 );
 
+router.get("/tracking/:id", parcelControllers.getParcelByTrackingId);
+
 router.get("/", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), parcelControllers.getAllParcels);
 
 export const ParcelRoutes = router;
