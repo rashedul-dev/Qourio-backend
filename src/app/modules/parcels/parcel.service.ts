@@ -542,6 +542,58 @@ const updateParcelStatus = async (
   return parcel;
 };
 
+const parcelStatusBlock = async (
+  parcelId: string,
+  adminId: string,
+  payload: { reason?: string; isBlocked: boolean }
+) => {
+  const parcel = await Parcel.findById(parcelId);
+  if (!parcel) {
+    throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
+  }
+
+  if (parcel.currentStatus === "Delivered") {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel already Delivered");
+  }
+  if (parcel.isBlocked) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Parcel already Blocked");
+  }
+
+  // check payload status and isBlocked same
+  if (parcel.isBlocked === payload.isBlocked) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Parcel is already in this ${payload.isBlocked ? "blocked" : "unblocked"} status`
+    );
+  }
+
+  parcel.isBlocked = payload.isBlocked;
+
+  if (payload.isBlocked) {
+    parcel.currentStatus = ParcelStatus.BLOCKED;
+  } else {
+    parcel.currentStatus = ParcelStatus.APPROVED;
+  }
+  const locationObj: ILocation = {
+    street: (parcel?.currentLocation as string) || "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+  };
+
+  addStatusLog(
+    parcel,
+    payload.isBlocked ? ParcelStatus.BLOCKED : ParcelStatus.APPROVED,
+    new Types.ObjectId(adminId),
+    locationObj,
+    payload.reason || "Parcel blocked by admin."
+  );
+
+  await parcel.save();
+
+  return parcel;
+};
 export const parcelServices = {
   createParcel,
   cancelParcel,
@@ -553,4 +605,5 @@ export const parcelServices = {
   getDeliveryHistory,
   getAllParcels,
   updateParcelStatus,
+  parcelStatusBlock,
 };

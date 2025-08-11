@@ -2,7 +2,7 @@ import { Router } from "express";
 import { checkAuth } from "../../middlewares/checkAuth";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { Role } from "../users/user.interface";
-import { createParcelZodSchema, updateStatusPersonnelSchema } from "./parcel.validation";
+import { createParcelZodSchema, updateBlockedStatusSchema, updateStatusPersonnelSchema } from "./parcel.validation";
 import { parcelControllers } from "./parcel.controller";
 
 const router = Router();
@@ -27,8 +27,14 @@ router.get("/", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), parcelControllers.getAl
 router.patch(
   "/:id/delivery-status",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-    validateRequest(updateStatusPersonnelSchema),
+  validateRequest(updateStatusPersonnelSchema),
   parcelControllers.updatedParcelStatus
+);
+router.patch(
+  "/:id/block-status",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(updateBlockedStatusSchema),
+  parcelControllers.blockStatusParcel
 );
 
 router.get("/", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), parcelControllers.getAllParcels);
