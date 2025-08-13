@@ -32,7 +32,7 @@ passport.use(
         if (!isPasswordMatch) {
           return done(null, false, { message: "Password does not match" });
         }
-        return done(null, isUserExist);
+        return done(null);
       } catch (error) {
         console.log(error);
         done(error);
@@ -71,7 +71,7 @@ passport.use(
             ],
           });
         }
-        return done(null, user);
+        return done(null);
       } catch (error) {
         console.log("Google Call-Back Error", error);
         done(error);
