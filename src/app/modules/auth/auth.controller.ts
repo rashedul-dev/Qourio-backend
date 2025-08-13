@@ -1,4 +1,4 @@
-import { NextFunction, Request, response, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
@@ -37,13 +37,12 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
   })(req, res, next);
 });
 
-const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const getNewAccessToken = catchAsync(async (req: Request, res: Response) => {
   const refreshToken = await req.cookies.refreshToken;
   if (!refreshToken) {
     throw new AppError(httpStatus.BAD_REQUEST, "No refresh token received");
   }
   const tokenInfo = await AuthServices.getNewAccessToken(refreshToken as string);
-
 
   setAuthCookie(res, tokenInfo);
 
@@ -74,7 +73,7 @@ const logOut = catchAsync(async (req: Request, res: Response, next: NextFunction
   });
 });
 
-const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
   const newPassword = req.body.newPassword;
   const oldPassword = req.body.oldPassword;
   const decodedToken = req.user;

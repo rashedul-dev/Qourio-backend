@@ -5,7 +5,6 @@ import { User } from "./user.model";
 import { envVars } from "../../config/env";
 import bcryptjs from "bcryptjs";
 import { JwtPayload } from "jsonwebtoken";
-import { removePassword } from "../../helpers/removePassword";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { email, password, role, ...rest } = payload;

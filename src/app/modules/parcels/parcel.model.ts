@@ -1,4 +1,4 @@
-import mongoose, { Schema, Types, Document, Model } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 import {
   ParcelStatus,
   ParcelType,
@@ -9,7 +9,6 @@ import {
   IRecipient,
   IParcel,
 } from "./parcel.interface"; // Assuming your interfaces/enums are here
-import { string } from "zod";
 
 // Sub-schema for Location (used inside Recipient and addresses)
 const locationSchema: object = new Schema<ILocation>({

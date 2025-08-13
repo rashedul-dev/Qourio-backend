@@ -2,9 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { UserServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
-import httpStatus, { StatusCodes } from "http-status-codes";
+import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
-import { success } from "zod";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const result = await UserServices.createUser(req.body);

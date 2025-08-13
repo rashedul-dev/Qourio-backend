@@ -1,6 +1,6 @@
 import httpStatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
-import { createNewAccessTokenWithRefreshToken, createUserToken } from "../../utils/userTokens";
+import { createNewAccessTokenWithRefreshToken } from "../../utils/userTokens";
 import { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../../config/env";
 import AppError from "../../errorHelpers/AppError";

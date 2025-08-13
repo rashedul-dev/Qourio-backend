@@ -22,12 +22,13 @@ export interface IAuthProvider {
 }
 export interface IUser {
   _id?: Types.ObjectId;
+  // userId?: string;
   name: string;
   email: string;
   password?: string;
   phone?: string;
   picture?: string;
-  role: Role ;
+  role: Role;
   isVerified?: boolean;
   isActive?: IsActive;
   isDeleted?: boolean;

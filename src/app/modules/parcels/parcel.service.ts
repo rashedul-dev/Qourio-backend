@@ -15,8 +15,6 @@ import { Parcel } from "./parcel.model";
 import { IsActive, Role } from "../users/user.interface";
 import { generateTrackingId } from "../../utils/generatetrackingId";
 import { QueryBuilder } from "../../utils/builder/QueryBuilder";
-import { date, string } from "zod";
-import { populate } from "dotenv";
 import { isValidStatusTransition, StatusTransitions } from "../../helpers/StatusTransition";
 
 const createParcel = async (payload: ICreateParcel, senderId: string) => {

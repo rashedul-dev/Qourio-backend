@@ -61,7 +61,7 @@ passport.use(
             email,
             name: profile.displayName,
             picture: profile.photos?.[0].value,
-            role: Role.RECEIVER || Role.SENDER,
+            role: Role?.RECEIVER || Role?.SENDER,
             isVerified: true,
             auths: [
               {
@@ -71,7 +71,7 @@ passport.use(
             ],
           });
         }
-        return done(null);
+        return done(null,);
       } catch (error) {
         console.log("Google Call-Back Error", error);
         done(error);
