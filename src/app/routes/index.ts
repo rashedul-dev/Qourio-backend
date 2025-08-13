@@ -25,7 +25,5 @@ moduleRoutes.forEach((route) => {
 });
 
 // router.use("/user", UserRoutes)
-// router.use("/parcels", TourRoutes)
-// router.use("/division", DivisionRoutes)
-// router.use("/booking", BookingRoutes)
-// router.use("/user", UserRoutes)
+// router.use("/auth",AuthRoutes )
+// router.use("/parcels", ParcelRoutes)
