@@ -8,7 +8,7 @@ import {
   ILocation,
   IRecipient,
   IParcel,
-} from "./parcel.interface"; // Assuming your interfaces/enums are here
+} from "./parcel.interface"; 
 
 // Sub-schema for Location (used inside Recipient and addresses)
 const locationSchema: object = new Schema<ILocation>({

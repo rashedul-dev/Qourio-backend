@@ -23,7 +23,6 @@ Postman Documentation: [Parcel Delivery System Postman Documentation](https://do
 - **Prettier** — Code formatting
 - **Vercel** — Deployment platform
 
-
 ## 🧱 Features
 
 - 🔐 Authentication: Email/password-based login using JWT and Passport js.
@@ -32,6 +31,7 @@ Postman Documentation: [Parcel Delivery System Postman Documentation](https://do
 - 🔄 Status Tracking: Track status changes for each parcel.
 - 🧱 Scalable Modular Architecture
 - ⚠️ Global error and validation handling
+
 ---
 
 ## 🛠️ Getting Started
@@ -181,14 +181,13 @@ password: "!SENDER123"
 
 ### 👤 Users
 
-| Method | Endpoint                     | Role                    | Description                 |
-| ------ | ---------------------------- | ----------------------- | --------------------------- |
-| POST   | `/register`                  | `Public`                | Register sender/receiver    |
-| GET    | `/all-users`                 | `ADMIN`/`SUPER_ADMIN`   | Get all users               |
-| GET    | `/me`                        | `Authenticated`         | Get logged-in user          |
-| GET    | `/:id`                       | `Authenticated`         | Get user by ID              |
-| PATCH  | `/:id`                       | `Authenticated`         | Update user profile         |
-| PATCH  | `/:id/block-user`            | `ADMIN`/`SUPER_ADMIN`   | Block/unblock user          |
+| Method | Endpoint          | Role                  | Description              |
+| ------ | ----------------- | --------------------- | ------------------------ |
+| POST   | `/register`       | `Public`              | Register sender/receiver |
+| GET    | `/all-users`      | `ADMIN`/`SUPER_ADMIN` | Get all users            |
+| GET    | `/:id`            | `Authenticated`       | Get user by ID           |
+| PATCH  | `/:id`            | `Authenticated`       | Update user profile      |
+| PATCH  | `/:id/block-user` | `ADMIN`/`SUPER_ADMIN` | Block/Delete user        |
 
 ---
 
