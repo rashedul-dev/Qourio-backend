@@ -10,15 +10,6 @@ Live Demo: [Parcel Delivery System](https://qourio-api.vercel.app).
 
 Postman Documentation: [Parcel Delivery System Postman Documentation](https://documenter.getpostman.com/view/45058243/2sB3BGHA4N)
 
-## 🧱 Features
-
-- 🔐 Authentication: Email/password-based login using JWT and Passport js.
-- 🔁 Role-based access (`SENDER`, `RECEIVER`, `ADMIN`, `SUPER_ADMIN`, `DELIVERY_MAN`)
-- 📦 Parcel lifecycle: Request, approve, picked, dispatch, deliver, block, cancel, flagged
-- 🔄 Status Tracking: Track status changes for each parcel.
-- 🧱 Scalable Modular Architecture
-- ⚠️ Global error and validation handling
-
 ## 🧩 Tech Stack
 
 - **Node.js + Express** — Backend framework
@@ -32,6 +23,15 @@ Postman Documentation: [Parcel Delivery System Postman Documentation](https://do
 - **Prettier** — Code formatting
 - **Vercel** — Deployment platform
 
+
+## 🧱 Features
+
+- 🔐 Authentication: Email/password-based login using JWT and Passport js.
+- 🔁 Role-based access (`SENDER`, `RECEIVER`, `ADMIN`, `SUPER_ADMIN`, `DELIVERY_MAN`)
+- 📦 Parcel lifecycle: Request, approve, picked, dispatch, deliver, block, cancel, flagged
+- 🔄 Status Tracking: Track status changes for each parcel.
+- 🧱 Scalable Modular Architecture
+- ⚠️ Global error and validation handling
 ---
 
 ## 🛠️ Getting Started
@@ -48,7 +48,7 @@ npm install
 .env.example .env
 
 # 4. Update .env with your MongoDB URI, nodemailer credentials, redis credentials, etc.
-PORT=5000
+PORT=4000
 DB_URL=mongodb+srv://<db_user>:<db_password>@cluster0.4pnfxkm.mongodb.net/percel_delivery_system?retryWrites=true&w=majority&appName=Cluster0
 NODE_ENV=development
 
@@ -181,16 +181,14 @@ password: "!SENDER123"
 
 ### 👤 Users
 
-| Method | Endpoint                     | Role                  | Description                 |
-| ------ | ---------------------------- | --------------------- | --------------------------- |
-| POST   | `/register`                  | Public                | Register sender/receiver    |
-| POST   | `/create-admin`              | `ADMIN`/`SUPER_ADMIN` | Create new admin            |
-| POST   | `/create-delivery-personnel` | `ADMIN`/`SUPER_ADMIN` | Register delivery personnel |
-| GET    | `/all-users`                 | `ADMIN`/`SUPER_ADMIN` | Get all users               |
-| GET    | `/me`                        | Authenticated         | Get logged-in user          |
-| GET    | `/:id`                       | Authenticated         | Get user by ID              |
-| PATCH  | `/:id`                       | Authenticated         | Update user profile         |
-| PATCH  | `/:id/block-user`            | `ADMIN`/`SUPER_ADMIN` | Block/unblock user          |
+| Method | Endpoint                     | Role                    | Description                 |
+| ------ | ---------------------------- | ----------------------- | --------------------------- |
+| POST   | `/register`                  | `Public`                | Register sender/receiver    |
+| GET    | `/all-users`                 | `ADMIN`/`SUPER_ADMIN`   | Get all users               |
+| GET    | `/me`                        | `Authenticated`         | Get logged-in user          |
+| GET    | `/:id`                       | `Authenticated`         | Get user by ID              |
+| PATCH  | `/:id`                       | `Authenticated`         | Update user profile         |
+| PATCH  | `/:id/block-user`            | `ADMIN`/`SUPER_ADMIN`   | Block/unblock user          |
 
 ---
 
@@ -206,12 +204,12 @@ password: "!SENDER123"
 | GET    | `/me/incoming`          | `RECEIVER` | Incoming parcels       |
 | GET    | `/me/history`           | `RECEIVER` | Delivery history       |
 | PATCH  | `/confirm/:id`          | `RECEIVER` | Confirm delivery       |
-| GET    | `/tracking/:trackingId` | Public     | Track parcel           |
 | GET    | `/`                     | `ADMIN`    | Get all parcels        |
 | POST   | `/create-parcel`        | `ADMIN`    | Admin creates parcel   |
 | PATCH  | `/:id/delivery-status`  | `ADMIN`    | Update delivery status |
 | PATCH  | `/:id/block-status`     | `ADMIN`    | Block/unblock a parcel |
 | GET    | `/:id/details`          | `ADMIN`    | Get parcel details     |
+| GET    | `/tracking/:trackingId` | `Public`   | Track parcel           |
 
 ---
 

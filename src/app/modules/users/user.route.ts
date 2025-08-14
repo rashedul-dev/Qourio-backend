@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { createUserBaseZodSchema, updateUserZodSchema } from "./user.validation";
+import { createUserBaseZodSchema, updateUserBlockedStatusSchema, updateUserZodSchema } from "./user.validation";
 
 import { checkAuth } from "../../middlewares/checkAuth";
 import { Role } from "./user.interface";
@@ -15,6 +15,12 @@ router.patch(
   checkAuth(...Object.values(Role)),
   validateRequest(updateUserZodSchema),
   UserControllers.updatedUser
+);
+router.patch(
+  "/:id/block-user",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(updateUserBlockedStatusSchema),
+  UserControllers.blockStatusUser
 );
 
 export const UserRoutes = router;

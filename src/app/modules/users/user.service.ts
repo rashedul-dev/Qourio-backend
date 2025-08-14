@@ -11,7 +11,7 @@ const createUser = async (payload: Partial<IUser>) => {
 
   if (![Role.RECEIVER, Role.SENDER, Role.DELIVERY_MAN].includes(role as Role)) {
     throw new AppError(httpStatus.CONFLICT, `Invalid role or Can not Assign ${Role} role`);
-  } 
+  }
 
   const isUserExist = await User.findOne({ email });
   if (isUserExist) {
@@ -80,8 +80,37 @@ const getAllUsers = async () => {
     },
   };
 };
+const blockStatusUser = async (userId: string, isActive: IsActive) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // check payload status and isActive same
+  if (user.isActive === isActive) {
+    throw new AppError(httpStatus.BAD_REQUEST, `User is already in this ${isActive} status`);
+  }
+
+  user.isActive = isActive;
+
+  if (isActive === IsActive.BLOCKED) {
+    user.isActive = IsActive.BLOCKED;
+  } else if (isActive === IsActive.INACTIVE) {
+    user.isActive = IsActive.INACTIVE;
+  } else if (isActive === IsActive.DELETED) {
+    user.isActive = IsActive.DELETED;
+  } else {
+    user.isActive = IsActive.ACTIVE;
+  }
+
+  await user.save();
+
+  return user;
+};
 export const UserServices = {
   createUser,
   updateUser,
   getAllUsers,
+  blockStatusUser,
 };

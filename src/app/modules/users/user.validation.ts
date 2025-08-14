@@ -80,3 +80,6 @@ export const createDeliveryManZodSchema = createUserBaseZodSchema.extend({
 export const updateUserStatusSchema = z.object({
   isActive: z.enum(Object.values(IsActive) as [string], { invalid_type_error: "A valid satus is required" }),
 });
+export const updateUserBlockedStatusSchema = z.object({
+  isActive: z.enum(Object.values(IsActive) as [string]),
+});

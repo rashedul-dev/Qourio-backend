@@ -4,6 +4,7 @@ import { UserServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
+import { IsActive } from "./user.interface";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const result = await UserServices.createUser(req.body);
@@ -41,8 +42,30 @@ const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFun
     meta: result.meta,
   });
 });
+const blockStatusUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.params.id;
+  const { isActive } = req.body;
+
+  const result = await UserServices.blockStatusUser(userId, isActive);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: `User ${
+      isActive === IsActive.BLOCKED
+        ? "Blocked"
+        : isActive === IsActive.INACTIVE
+        ? "Inactive"
+        : isActive === IsActive.DELETED
+        ? "Deleted"
+        : "Active"
+    } Successfully`,
+    data: result,
+  });
+});
 export const UserControllers = {
   createUser,
   updatedUser,
   getAllUsers,
+  blockStatusUser,
 };
