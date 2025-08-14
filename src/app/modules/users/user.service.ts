@@ -9,9 +9,9 @@ import { JwtPayload } from "jsonwebtoken";
 const createUser = async (payload: Partial<IUser>) => {
   const { email, password, role, ...rest } = payload;
 
-  if (![Role.RECEIVER, Role.SENDER].includes(role as Role)) {
-    throw new AppError(httpStatus.CONFLICT, "Invalid role");
-  }
+  if (![Role.RECEIVER, Role.SENDER, Role.DELIVERY_MAN].includes(role as Role)) {
+    throw new AppError(httpStatus.CONFLICT, `Invalid role or Can not Assign ${Role} role`);
+  } 
 
   const isUserExist = await User.findOne({ email });
   if (isUserExist) {
