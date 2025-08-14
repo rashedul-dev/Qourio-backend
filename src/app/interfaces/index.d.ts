@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import { Role } from "../modules/users/user.interface";
 
 export interface CustomJwtPayload extends JwtPayload {
-    userId: Types.ObjectId | string;
+    // userId: Types.ObjectId | string;
     email: string;
     role: Role;
 }

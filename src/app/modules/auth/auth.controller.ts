@@ -1,14 +1,14 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, response, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
-import httpStatus from "http-status-codes";
-import { JwtPayload } from "jsonwebtoken";
-import passport from "passport";
-import AppError from "../../errorHelpers/AppError";
-import { createUserToken } from "../../jwt/userTokens";
-import { setAuthCookie } from "../../jwt/setCookie";
 import { sendResponse } from "../../utils/sendResponse";
+import httpStatus from "http-status-codes";
 import { AuthServices } from "./auth.service";
+import AppError from "../../errorHelpers/AppError";
+import { JwtPayload } from "jsonwebtoken";
+import { createUserToken } from "../../utils/userTokens";
 import { envVars } from "../../config/env";
+import passport from "passport";
+import { setAuthCookie } from "../../jwt/setCookie";
 
 const credentialsLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate("local", async (err: any, user: any, info: any) => {
@@ -37,12 +37,17 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
   })(req, res, next);
 });
 
-const getNewAccessToken = catchAsync(async (req: Request, res: Response) => {
+const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const refreshToken = await req.cookies.refreshToken;
   if (!refreshToken) {
     throw new AppError(httpStatus.BAD_REQUEST, "No refresh token received");
   }
   const tokenInfo = await AuthServices.getNewAccessToken(refreshToken as string);
+
+  //   res.cookie("accessToken", tokenInfo.accessToken, {
+  //   httpOnly: true,
+  //   secure: false,
+  // });
 
   setAuthCookie(res, tokenInfo);
 
@@ -73,7 +78,7 @@ const logOut = catchAsync(async (req: Request, res: Response, next: NextFunction
   });
 });
 
-const resetPassword = catchAsync(async (req: Request, res: Response) => {
+const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const newPassword = req.body.newPassword;
   const oldPassword = req.body.oldPassword;
   const decodedToken = req.user;
