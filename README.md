@@ -64,17 +64,21 @@ npm run dev
 
 ```
 // SUPER_ADMIN
-email: "super@gmail.com",
-password: "SUPER!123"
+"email": "super@gmail.com",
+"password": "SUPER!123"
 
 
 // SENDER
-email: "sender@gmail.com",
+"email": "sender@gmail.com",
 password: "!SENDER123"
 
 // RECEIVER
-email: "receiver@gmail.com",
- password: "!RECEIVER123",
+"email": "receiver@gmail.com",
+ "password": "!RECEIVER123",
+
+// DELIVERY_MAN
+"email": "deliveryman@gmail.com",
+"password": "DELIVERYMAN!123"
 
 ```
 
