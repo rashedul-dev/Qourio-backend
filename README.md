@@ -159,8 +159,8 @@ password: "!SENDER123"
 | -------------- | --------------------------------------------------------- |
 | `SENDER`       | send/cancel/delete parcels, view own parcels, status      |
 | `RECEIVER`     | View incoming parcels, confirm delivery, delivery history |
-| `DELIVERY_MAN` | Currently admin can assign to parcel, and create          |
-| `ADMIN`        | Manage users, create admins and personnel, manage coupons |
+| `DELIVERY_MAN` | currently user can assign to parcel, and create           |
+| `ADMIN`        | Manage users, create admins can access excusive things    |
 | `SUPER_ADMIN`  | Similar to admin but can create super admins              |
 
 ---
@@ -184,7 +184,6 @@ password: "!SENDER123"
 | ------ | ----------------- | --------------------- | ------------------------ |
 | POST   | `/register`       | `Public`              | Register sender/receiver |
 | GET    | `/all-users`      | `ADMIN`/`SUPER_ADMIN` | Get all users            |
-| GET    | `/:id`            | `Authenticated`       | Get user by ID           |
 | PATCH  | `/:id`            | `Authenticated`       | Update user profile      |
 | PATCH  | `/:id/block-user` | `ADMIN`/`SUPER_ADMIN` | Block/Delete user        |
 
@@ -203,7 +202,6 @@ password: "!SENDER123"
 | GET    | `/me/history`           | `RECEIVER` | Delivery history       |
 | PATCH  | `/confirm/:id`          | `RECEIVER` | Confirm delivery       |
 | GET    | `/`                     | `ADMIN`    | Get all parcels        |
-| POST   | `/create-parcel`        | `ADMIN`    | Admin creates parcel   |
 | PATCH  | `/:id/delivery-status`  | `ADMIN`    | Update delivery status |
 | PATCH  | `/:id/block-status`     | `ADMIN`    | Block/unblock a parcel |
 | GET    | `/:id/details`          | `ADMIN`    | Get parcel details     |
