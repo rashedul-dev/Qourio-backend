@@ -67,7 +67,6 @@ npm run dev
 "email": "super@gmail.com",
 "password": "SUPER!123"
 
-
 // SENDER
 "email": "sender@gmail.com",
 password: "!SENDER123"
