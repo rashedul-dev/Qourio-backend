@@ -108,9 +108,73 @@ const blockStatusUser = async (userId: string, isActive: IsActive) => {
 
   return user;
 };
+const getSingleUser = async (id: string) => {
+  const user = await User.findById(id).select("-password");
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+  return {
+    data: user,
+  };
+};
+const getMe = async (userId: string) => {
+  const user = await User.findById(userId).select("-password");
+  return {
+    data: user,
+  };
+};
+
+const createAdmin = async (payload: Partial<IUser>, decodedToken: JwtPayload) => {
+  const { email, password, role, ...rest } = payload;
+
+  const isUserExist = await User.findOne({ email });
+
+  if (isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+  }
+
+  if (decodedToken.role == Role.ADMIN && role === Role.SUPER_ADMIN) {
+    throw new AppError(httpStatus.FORBIDDEN, "You are not authorized to create SUPER_ADMIN");
+  }
+
+  const hashedPassword = await bcryptjs.hash(password as string, Number(envVars.BCRYPT_SALT_ROUND));
+
+  const user = await User.create({
+    email,
+    password: hashedPassword,
+    role: Role.ADMIN,
+    ...rest,
+  });
+
+  return user;
+};
+const createDeliveryMan = async (payload: Partial<IUser>) => {
+  const { email, password, ...rest } = payload;
+
+  const isUserExist = await User.findOne({ email });
+  if (isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+  }
+
+  const hashedPassword = await bcryptjs.hash(password as string, Number(envVars.BCRYPT_SALT_ROUND));
+
+  const user = await User.create({
+    email,
+    password: hashedPassword,
+    role: Role.DELIVERY_MAN,
+    ...rest,
+  });
+
+  return user;
+};
+
 export const UserServices = {
   createUser,
   updateUser,
   getAllUsers,
   blockStatusUser,
+  getSingleUser,
+  getMe,
+  createAdmin,
+  createDeliveryMan,
 };

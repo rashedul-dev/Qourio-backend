@@ -42,6 +42,18 @@ const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFun
     meta: result.meta,
   });
 });
+
+const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const decodedToken = req.user as JwtPayload;
+  const result = await UserServices.getMe(decodedToken.userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "Your profile Retrieved Successfully",
+    data: result.data,
+  });
+});
 const blockStatusUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.params.id;
   const { isActive } = req.body;
@@ -63,9 +75,46 @@ const blockStatusUser = catchAsync(async (req: Request, res: Response, next: Nex
     data: result,
   });
 });
+const getSingleUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const id = req.params.id;
+  const result = await UserServices.getSingleUser(id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "User Retrieved Successfully",
+    data: result.data,
+  });
+});
+
+const createAdmin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const decodedToken = req.user as JwtPayload;
+  const user = await UserServices.createAdmin(req.body, decodedToken);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "Admin Created Successfully",
+    data: user,
+  });
+});
+
+const createDeliveryMan = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const user = await UserServices.createDeliveryMan(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "Delivery Man Created Successfully",
+    data: user,
+  });
+});
 export const UserControllers = {
   createUser,
   updatedUser,
   getAllUsers,
   blockStatusUser,
+  getMe,
+  getSingleUser,
+  createAdmin,
+  createDeliveryMan,
 };
