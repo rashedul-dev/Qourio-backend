@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import app from "./app";
 import { envVars } from "./app/config/env";
 import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
+import { connectRedis } from "./app/config/redis.config";
 
 let server: Server;
 
@@ -24,6 +25,10 @@ const startServer = async () => {
 (async () => {
   await startServer();
   await seedSuperAdmin();
+})();
+(async () => {
+  await connectRedis();
+  app.listen(5000, () => console.log("Server running on port 5000"));
 })();
 
 process.on("SIGTERM", () => {
