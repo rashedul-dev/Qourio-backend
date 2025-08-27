@@ -11,6 +11,7 @@ export const checkAuth =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const accessToken = req.headers.authorization;
+      console.log(accessToken)
 
       if (!accessToken) {
         throw new AppError(403, "No Token Received");
