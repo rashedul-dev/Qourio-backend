@@ -213,7 +213,7 @@ const getSenderParcels = async (senderId: string, query: Record<string, string>)
     .search(["trackingId", "deliveryAddress", "pickupAddress"])
     .filter()
     .sort()
-    .pagination()
+    .paginate()
     .fields();
 
   const parcels = await parcelQuery.modelQuery;
@@ -230,7 +230,7 @@ const getSenderParcels = async (senderId: string, query: Record<string, string>)
 const getIncomingParcels = async (recipientId: string, query: Record<string, string>) => {
   const parcelQuery = new QueryBuilder(
     Parcel.find({
-      receiver: recipientId,
+      recipient: recipientId,
       currentStatus: {
         $nin: [
           ParcelStatus.DELIVERED,
@@ -242,7 +242,7 @@ const getIncomingParcels = async (recipientId: string, query: Record<string, str
       },
     })
       .select(
-        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -statusLog._id -statusLog.updatedBy -deliveryman"
+        "-weight -weightUnit -fee -couponCode -isPaid -isBlocked -sender -statusLog._id -statusLog.updatedBy -deliveryPersonnel"
       )
       .populate("sender", "name email phone -_id")
       .populate("recipient", "name email phone _id"),
@@ -251,7 +251,7 @@ const getIncomingParcels = async (recipientId: string, query: Record<string, str
     .search(["trackingId", "deliveryAddress", "pickupAddress"])
     .filter()
     .sort()
-    .pagination()
+    .paginate()
     .fields();
 
   const parcels = await parcelQuery.modelQuery;
@@ -322,7 +322,7 @@ const getDeliveryHistory = async (recipientId: string, query: Record<string, str
     .search(["trackingId", "deliveryAddress", "pickupAddress"])
     .filter()
     .sort()
-    .pagination()
+    .paginate()
     .fields();
 
   const parcels = await parcelQuery.modelQuery;
@@ -341,7 +341,7 @@ const getAllParcels = async (query: Record<string, string>) => {
     .search(["trackingId", "name", "deliveryAddress", "pickupAddress"])
     .filter()
     .sort()
-    .pagination()
+    .paginate()
     .fields();
 
   const parcels = await parcelQuery.modelQuery;

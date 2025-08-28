@@ -11,10 +11,10 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
   if (envVars.NODE_ENV == "development") {
     console.log(err);
   }
+  let errorSources: TErrorSources[] = [];
   let statusCode = 500;
   let message = `something went wrong!!${err.message} from global error`;
 
-  let errorSources: TErrorSources[] = [];
 
   //Duplicate email error
   if (err.code == 11000) {

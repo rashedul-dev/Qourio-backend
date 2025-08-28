@@ -54,7 +54,7 @@ export class QueryBuilder<T> {
 
     return this;
   }
-  pagination(): this {
+  paginate(): this {
     const page = Number(this.query.page) || 1;
     const limit = Number(this.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -74,8 +74,6 @@ export class QueryBuilder<T> {
 
     const totalPage = Math.ceil(totalParcel / limit);
 
-    return { page, limit, totalPage, 
-        total: totalParcel 
-    };
+    return { page, limit, totalPage, total: totalParcel };
   }
 }

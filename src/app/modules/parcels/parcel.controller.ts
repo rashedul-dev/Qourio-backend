@@ -78,10 +78,11 @@ const getSenderParcels = catchAsync(async (req: Request, res: Response, next: Ne
 
 const getIncomingParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const recipientId = req.user?.userId;
+  console.log(recipientId);
   const query = req.query;
 
-  const result = await parcelServices.getIncomingParcels(String(recipientId), query as Record<string, string>);
-
+  const result = await parcelServices.getIncomingParcels(recipientId, query as Record<string, string>);
+  // console.log("hello", result);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -209,7 +210,7 @@ export const parcelControllers = {
   parcelStatusBlock,
   getParcelDetailsById,
   getParcelWithTrackingHistory,
-  
+
   //  PUBLIC
   getParcelByTrackingId,
 };

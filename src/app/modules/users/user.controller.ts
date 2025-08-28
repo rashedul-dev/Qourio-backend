@@ -53,6 +53,7 @@ const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction)
     message: "Your profile Retrieved Successfully",
     data: result.data,
   });
+  console.log(result);
 });
 const blockStatusUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.params.id;
